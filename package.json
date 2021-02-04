@@ -1,0 +1,24 @@
+{
+	"name": "aws_tagging_cleanup",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "Jeff Beagley",
+	"license": "ISC",
+	"dependencies": {
+		"aws-sdk": "^2.834.0"
+	},
+	"prettier": {
+		"tabWidth": 4,
+		"bracketSpacing": false,
+		"singleQuote": true,
+		"printWidth": 999999,
+		"useTabs": true,
+		"semi": false,
+		"arrowParens": "always",
+		"proseWrap": "never"
+	}
+}
