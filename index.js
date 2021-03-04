@@ -1,6 +1,23 @@
 const AWS = require('aws-sdk')
 const apiVersion = '2015-10-01'
-const region = 'us-east-2'
+
+const process = require('process');
+
+var region = 'us-east-1'
+var dryrun = true
+
+try {
+	const args = process.argv.slice(2)
+	console.log(args)
+	if (args.length < 2) {
+		throw new Error()
+	}
+
+	region = args[0]
+	dryrun = (args[1] == 'true')
+} catch (err) {
+	throw new Error(`Arguments [region] [dryrun] are required \n ${err} \n`)
+}
 
 const ec2 = new AWS.EC2({region: region, apiVersion: apiVersion})
 
@@ -63,7 +80,7 @@ function getEC2Instances() {
 	})
 }
 
-async function processInstances(instances, dryrun = true) {
+async function processInstances(instances) {
 	for (const instance of instances) {
 		console.log(`Instance ID: ${instance.instance_id}`)
 
@@ -74,7 +91,7 @@ async function processInstances(instances, dryrun = true) {
 
 			for (const tag of instance.tags) {
 				if (tag.Key === kt.tag) {
-					console.log(`key: "${kt.tag}" successfully found on instance`)
+					//console.log(`key: "${kt.tag}" successfully found on instance`)
 
 					key_found = true
 				}
@@ -89,25 +106,23 @@ async function processInstances(instances, dryrun = true) {
 					//we need to grab the key/value pair, add the new one, then drop the old once we confirm its good
 
 					//add new key/pair value
-					await createTags(instance.instance_id, new_value, dryrun).catch((err) => {
+
+					await createTags(instance.instance_id, new_value).catch((err) => {
 						console.log(err.message)
 					})
 
 					//check new key/pair value exists
-					let new_tags = await getInstanceTags(instance.instance_id).catch(err => {
+					let new_tags = await getInstanceTags(instance.instance_id).catch((err) => {
 						console.log(err.message)
-
 					})
 
 					for (const new_tag of new_tags) {
-						if(new_tag.Key === new_value.Key && new_tag.Value === new_value.Value) {
+						if (new_tag.Key === new_value.Key && new_tag.Value === new_value.Value) {
 							new_value_exists
-
 						}
-
 					}
 
-					console.log("New value exists, we can now safely remove the old")
+					console.log('New value exists, we can now safely remove the old')
 					//remove old
 				}
 			}
@@ -119,7 +134,7 @@ async function processInstances(instances, dryrun = true) {
 	}
 }
 
-async function createTags(instance_id, tag, dryrun = true) {
+async function createTags(instance_id, tag) {
 	return new Promise((resolve, reject) => {
 		let params = {
 			Resources: [instance_id],
@@ -155,7 +170,7 @@ async function getInstanceTags(instance_id) {
 	})
 }
 
-async function process(dryrun = true) {
+async function runProcess() {
 	try {
 		let instances = await getEC2Instances()
 		await processInstances(instances, dryrun)
@@ -164,4 +179,4 @@ async function process(dryrun = true) {
 	}
 }
 
-process()
+runProcess()
